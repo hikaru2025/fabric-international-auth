@@ -1,5 +1,23 @@
 spring:
+  mvc:
+    log-request-details: true
+    log-resolved-exception: true
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/fabric_international?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&serverTimezone=UTC
     username: root
     password: 123456
+security:
+  oauth2:
+    client:
+      client-id: user-client
+      client-secret: user-secret-8888
+      user-authorization-uri: http://localhost:8080/oauth/authorize
+      access-token-uri: http://localhost:8080/oauth/token
+    resource:
+      id: user-client
+      user-info-uri: user-info
+    authorization:
+      check-token-access: http://localhost:8080/oauth/check_token
+
+server:
+  port: 8081
