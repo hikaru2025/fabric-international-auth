@@ -1,15 +1,13 @@
 package com.kt.fabric.international.fabricinternationalauth.config;
 
-import com.kt.fabric.international.fabricinternationalauth.enhancer.UserTokenEnhancer;
-import com.kt.fabric.international.fabricinternationalauth.filter.OAuthTokenAuthenticationFilter;
-import com.kt.fabric.international.fabricinternationalauth.service.OAuth2ClientDetailsService;
-import com.kt.fabric.international.fabricinternationalauth.service.UserAuthDetailsService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.kt.fabric.international.fabricinternationalauth.support.OAuthTokenAuthenticationFilter;
+import com.kt.fabric.international.fabricinternationalauth.support.UserTokenEnhancer;
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
@@ -21,45 +19,32 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
 
 /**
- * @Description: @EnableAuthorizationServer注解开启OAuth2授权服务机制,优先级顺序order=0-order的值越小，类的优先级越高
- * @ProjectName: spring-parent
- * @Package: com.yaomy.security.oauth2.config.OAuth2ServerConfig
- * @Date: 2019/7/9 11:26
- * @Version: 1.0
+ * @Auther: xm
+ * @Date: 2020/12/31/9:43
+ * @Description:
  */
 @SuppressWarnings("all")
 @Configuration
 @EnableAuthorizationServer
+@AllArgsConstructor
 public class AuthorizationServerConfigurer extends AuthorizationServerConfigurerAdapter {
-    /**
-     * Redis工厂类
-     */
-    @Autowired
-    private RedisConnectionFactory redisConnectionFactory;
-    /**
-     * OAuth2 token持久化接口
-     */
-    @Autowired
+
+
     private TokenStore tokenStore;
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private OAuth2ClientDetailsService oAuth2ClientDetailsService;
-    @Autowired
-    private UserAuthDetailsService userAuthDetailsService;
-    @Autowired
-    private WebResponseExceptionTranslator webResponseExceptionTranslator;
-    @Autowired
+
+    private TokenEnhancer tokenEnhancer;
+
+    private UserDetailsService userDetailsService;
+
+    private AuthenticationManager authenticationManagerBean;
+
     private OAuthTokenAuthenticationFilter oAuthTokenAuthenticationFilter;
-    /**
-     用来配置客户端详情服务（ClientDetailsService），客户端详情信息在这里初始化，
-     你可以把客户端详情信息写死也可以写入内存或者数据库中
-     */
-    @Override
-    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        //使用自定义ClientDetailsService初始化配置
-        clients.withClientDetails(oAuth2ClientDetailsService);
-    }
+
+    private WebResponseExceptionTranslator webResponseExceptionTranslator;
+
+
+
+
     /**
      * 用来配置授权（authorization）以及令牌（token)的访问端点和令牌服务（token services）
      */
@@ -71,7 +56,7 @@ public class AuthorizationServerConfigurer extends AuthorizationServerConfigurer
         //客户端信息
         tokenServices.setClientDetailsService(endpoints.getClientDetailsService());
         //自定义token生成
-        tokenServices.setTokenEnhancer(tokenEnhancer());
+        tokenServices.setTokenEnhancer(tokenEnhancer);
         //access_token 的有效时长 (秒), 默认 12 小时
         tokenServices.setAccessTokenValiditySeconds(60*1);
         //refresh_token 的有效时长 (秒), 默认 30 天
@@ -83,11 +68,12 @@ public class AuthorizationServerConfigurer extends AuthorizationServerConfigurer
 
         endpoints
                 //通过authenticationManager开启密码授权
-                .authenticationManager(authenticationManager)
+                .authenticationManager(authenticationManagerBean)
                 //自定义refresh_token刷新令牌对用户信息的检查，以确保用户信息仍然有效
-                .userDetailsService(userAuthDetailsService)
+                .userDetailsService(userDetailsService)
                 //token相关服务
                 .tokenServices(tokenServices)
+                .exceptionTranslator(webResponseExceptionTranslator);
                 /**
                  pathMapping用来配置端点URL链接，第一个参数是端点URL默认地址，第二个参数是你要替换的URL地址
                  上面的参数都是以“/”开头，框架的URL链接如下：
@@ -98,63 +84,26 @@ public class AuthorizationServerConfigurer extends AuthorizationServerConfigurer
                  /oauth/check_token：用于资源服务访问的令牌解析端点。
                  /oauth/token_key：提供公有密匙的端点，如果你使用JWT令牌的话。
                  */
-                .pathMapping("/oauth/confirm_access", "/custom/confirm_access")
-                //自定义异常转换处理类
-                .exceptionTranslator(webResponseExceptionTranslator);
+//                .pathMapping("/oauth/confirm_access", "/custom/confirm_access");
+
+
     }
-    /**
-     * 用来配置令牌端点（Token Endpoint）的安全约束
-     */
+
+
+
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
         security.tokenKeyAccess("permitAll()")
-                .checkTokenAccess("permitAll()")
+                .checkTokenAccess("isAuthenticated()")
                 /**
                  * 主要是让/oauth/token支持client_id和client_secret做登陆认证
                  * 如果开启了allowFormAuthenticationForClients，那么就在BasicAuthenticationFilter之前
                  * 添加ClientCredentialsTokenEndpointFilter,使用ClientDetailsUserDetailsService来进行
                  * 登陆认证
                  */
-                .allowFormAuthenticationForClients()
+                .allowFormAuthenticationForClients();
                 //oauth/token端点过滤器
-                .addTokenEndpointAuthenticationFilter(oAuthTokenAuthenticationFilter);
+//                .addTokenEndpointAuthenticationFilter(oAuthTokenAuthenticationFilter);
     }
-    /**
-     * @Description ApprovalStore用户保存、检索和撤销用户审批的界面
-     * @Version  1.0
-     */
-/*    @Bean
-    public ApprovalStore approvalStore() throws Exception {
-        TokenApprovalStore store = new TokenApprovalStore();
-        store.setTokenStore(tokenStore());
-        return store;
-    }*/
-/*    @Bean
-    public UserApprovalHandler userApprovalHandler1(){
-        TokenStoreUserApprovalHandler userApprovalHandler = new TokenStoreUserApprovalHandler();
-        userApprovalHandler.setTokenStore(tokenStore());
-        return userApprovalHandler;
-    }*/
-    /**
-     * @Description 自定义生成令牌token
-     * @Date 2019/7/9 19:58
-     * @Version  1.0
-     */
-    @Bean
-    public TokenEnhancer tokenEnhancer(){
-        return new UserTokenEnhancer();
-    }
-    /**
-     * @Description OAuth2 token持久化接口初始化
-     * @Date 2019/7/9 17:45
-     * @Version  1.0
-     */
-    @Bean
-    public TokenStore tokenStore() {
-        //token保存在内存中（也可以保存在数据库、Redis中）。
-        //如果保存在中间件（数据库、Redis），那么资源服务器与认证服务器可以不在同一个工程中。
-        //注意：如果不保存access_token，则没法通过access_token取得用户信息
-        //return new InMemoryTokenStore();
-        return new RedisTokenStore(redisConnectionFactory);
-    }
+
 }

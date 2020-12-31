@@ -1,11 +1,13 @@
-package com.kt.fabric.international.fabricinternationalauth.enhancer;
+package com.kt.fabric.international.fabricinternationalauth.support;
 
+import com.kt.fabric.international.fabricinternationalauth.constant.TokenConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.oauth2.common.DefaultExpiringOAuth2RefreshToken;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +38,7 @@ public class UserTokenEnhancer implements TokenEnhancer {
                token.setRefreshToken(new DefaultExpiringOAuth2RefreshToken(getToken(), refreshToken.getExpiration()));
            }
            Map<String, Object> additionalInformation = new HashMap<>();
-           additionalInformation.put("client_id", authentication.getOAuth2Request().getClientId());
+           additionalInformation.put(TokenConstant.CLIENT_ID, authentication.getOAuth2Request().getClientId());
            //添加额外配置信息
            token.setAdditionalInformation(additionalInformation);
            return token;

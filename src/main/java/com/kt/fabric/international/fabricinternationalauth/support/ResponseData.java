@@ -1,7 +1,6 @@
-package com.kt.fabric.international.fabricinternationalauth.common.base;
+package com.kt.fabric.international.fabricinternationalauth.support;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.kt.fabric.international.fabricinternationalauth.common.enums.AppHttpStatus;
 
 import java.io.Serializable;
 
@@ -108,7 +107,7 @@ public class ResponseData<T> implements Serializable {
      * @Date 2019/7/18 10:10
      * @Version 1.0
      */
-    public static <T> ResponseData<T> buildResponse(int status, String message, T data) {
+    public static <T>  ResponseData<T> buildResponse(int status, String message, T data) {
         return new Builder<T>()
                 .setStatus(status)
                 .setMessage(message)
@@ -121,7 +120,7 @@ public class ResponseData<T> implements Serializable {
      * @Date 2019/7/18 10:10
      * @Version 1.0
      */
-    public static <T> ResponseData<T> buildResponse(AppHttpStatus appHttpMsg) {
+    public static <T>  ResponseData<T> buildResponse(AppHttpStatus appHttpMsg) {
         return new Builder<T>()
                 .setStatus(appHttpMsg.getStatus())
                 .setMessage(appHttpMsg.getMessage())
@@ -133,7 +132,7 @@ public class ResponseData<T> implements Serializable {
      * @Date 2019/7/18 10:10
      * @Version 1.0
      */
-    public static <T> ResponseData<T> buildResponse(AppHttpStatus appHttpMsg, T data) {
+    public static <T>  ResponseData<T> buildResponse(AppHttpStatus appHttpMsg, T data) {
         return new Builder<T>()
                 .setStatus(appHttpMsg.getStatus())
                 .setMessage(appHttpMsg.getMessage())

@@ -1,8 +1,8 @@
 package com.kt.fabric.international.fabricinternationalauth.service;
 
-import com.kt.fabric.international.fabricinternationalauth.authority.UserGrantedAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -10,7 +10,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,6 +22,7 @@ import java.util.List;
  */
 @Component
 public class UserAuthDetailsService implements UserDetailsService {
+
     @Autowired
     private PasswordEncoder passwordEncoder;
     /**
@@ -32,13 +32,6 @@ public class UserAuthDetailsService implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        GrantedAuthority authority = new UserGrantedAuthority("username", username);
-
-        List<String> list = new ArrayList<>();
-        list.add("/a/b");
-        list.add("/a/c");
-        list.add("/oauth/token");
-        GrantedAuthority interfaces = new UserGrantedAuthority("interfaces", list);
         /**
          isEnabled 账户是否启用
          isAccountNonExpired 账户没有过期
@@ -50,7 +43,7 @@ public class UserAuthDetailsService implements UserDetailsService {
                 true,
                 true,
                 true,
-                 Arrays.asList(authority, interfaces));
+                 AuthorityUtils.commaSeparatedStringToAuthorityList("role"));
     }
 
 }

@@ -1,7 +1,6 @@
-package com.kt.fabric.international.fabricinternationalauth.handler;
+package com.kt.fabric.international.fabricinternationalauth.support;
 
-import com.kt.fabric.international.fabricinternationalauth.common.base.ResponseData;
-import com.kt.fabric.international.fabricinternationalauth.common.utils.json.JSONUtils;
+import com.alibaba.fastjson.JSON;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -18,10 +17,10 @@ import java.io.IOException;
  * @Date: 2019/7/1 15:38
  * @Version: 1.0
  */
-@Component
+@Component("UserAuthenticationSuccessHandler" )
 public class UserAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        JSONUtils.writeValue(response.getOutputStream(), ResponseData.buildResponse(200,"SUCCESS"));
+        JSON.writeJSONString(response.getOutputStream(), ResponseData.buildResponse(200, "SUCCESS"));
     }
 }

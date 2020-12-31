@@ -1,4 +1,4 @@
-package com.kt.fabric.international.fabricinternationalauth.filter;
+package com.kt.fabric.international.fabricinternationalauth.support;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;

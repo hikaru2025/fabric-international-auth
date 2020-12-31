@@ -1,4 +1,4 @@
-package com.kt.fabric.international.fabricinternationalauth.common.enums;
+package com.kt.fabric.international.fabricinternationalauth.support;
 
 /**
  * @Description: 自定义状态码异常枚举类
